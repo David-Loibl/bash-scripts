@@ -1,0 +1,23 @@
+#! /bin/sh
+
+action=$1
+beamer=`grep -c -m 1 beamer $2`
+file=`basename $2 .tex`
+tmpdir="/tmp"
+rubber="rubber"
+
+if [ $beamer = "0" ]; then
+    if [ $action = "preview" ]; then   # normal tex file --> preview as dvi
+        $rubber --into=$tmpdir $file.tex && my-preview xdvi $tmpdir/$file.dvi
+    elif [ $action = "create" ]; then  # normal tex file --> create pdf
+        $rubber --into=$tmpdir $file.tex && dvips -Ppdf $tmpdir/$file.dvi && mv $file.ps $tmpdir/$file.ps && ps2pdf $tmpdir/$file.ps && my-preview acroread $file.pdf
+    fi
+elif [ $beamer = "1" ]; then
+    if [ $action = "preview" ]; then   # beamer tex file --> preview as ps
+        $rubber --into=$tmpdir $file.tex && dvips -Ppdf $tmpdir/$file.dvi && mv $file.ps $tmpdir && my-preview "gv --scale=3" $tmpdir/$file.ps
+    elif [ $action = "create" ]; then  # beamer tex file --> create pdf
+        $rubber --into=$tmpdir $file.tex && dvips -Ppdf $tmpdir/$file.dvi && mv $file.ps $tmpdir && ps2pdf $tmpdir/$file.ps && my-preview acroread $file.pdf
+    fi
+else
+    echo "action ($action) or filetype ($beamer) not recognized"
+fi
